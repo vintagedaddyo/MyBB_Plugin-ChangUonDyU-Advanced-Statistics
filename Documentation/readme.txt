@@ -1,4 +1,5 @@
 ChangUonDyU - Advanced Statistics 1.0.2
+By: ChangUonDyU & updated by Vintagedaddyo
 
 FEATURES:
 
@@ -14,6 +15,7 @@ Plugin Installation:
 
     inc/plugins/changstats.php
     inc/languages/english/changstats.lang.php
+    inc/languages/english/admin/changstats.lang.php
 
 - Goto admincp > Plugins > active ChangUonDyU - Advanced Statistics 
 
@@ -41,3 +43,12 @@ Settings Location Instruction:
 To change options:
 
 Goto AdminCP > Configuration > Settings > ChangUonDyU - Advanced Statistics
+
+
+Current localization:
+
+- english
+- englishgb
+- espanol
+- french
+- italiano
