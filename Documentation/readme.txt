@@ -36,6 +36,9 @@ Code:
 {$changstats}
 <br />
 
+
+* note: you can choose to move that anywhere in the index page if you want hence why currently no automatic index template edit was included in the plugin.
+
 DONE!!!
 
 Settings Location Instruction:
@@ -52,3 +55,8 @@ Current localization:
 - espanol
 - french
 - italiano
+
+
+ChangUonDyU - Advanced Statistics works well with Thanks plugin. You can download the latest version of Thanks (compatible with MyBB 1.8) from the link below:
+
+https://www.dropbox.com/s/29h8arwa34x72pj/Thanks_3.9.2.zip?dl=1
