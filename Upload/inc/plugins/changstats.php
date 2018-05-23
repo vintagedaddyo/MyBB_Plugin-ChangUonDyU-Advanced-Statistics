@@ -19,14 +19,20 @@ if(!defined("IN_MYBB"))
 
 function changstats_info()
 {
-	return array(
-		"name"			=> "ChangUonDyU - Advanced Statistics",
-		"description"	=> "Advanced TopX and Latest Posts [AJAX]",
-		"website"		=> "http://community.mybb.com/user-6029.html",
-		"author"		=> "ChangUonDyU & updated by Vintagedaddyo",
-		"authorsite"	=> "http://community.mybb.com/user-6029.html",
-		"version"		=> "1.0.2",
-	);
+    global $lang;
+
+    $lang->load("changstats");
+
+    $lang->changstats_desc = '<form action="https://www.paypal.com/cgi-bin/webscr" method="post" style="float:right;">' . '<input type="hidden" name="cmd" value="_s-xclick">' . '<input type="hidden" name="hosted_button_id" value="AZE6ZNZPBPVUL">' . '<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">' . '<img alt="" border="0" src="https://www.paypalobjects.com/pl_PL/i/scr/pixel.gif" width="1" height="1">' . '</form>' . $lang->changstats_desc;
+    return Array(
+        'name' => $lang->changstats_name,
+        'description' => $lang->changstats_desc,
+        'website' => $lang->changstats_web,
+        'author' => $lang->changstats_auth,
+        'authorsite' => $lang->changstats_authsite,
+        'version' => $lang->changstats_ver,
+        'compatibility' => $lang->changstats_compat
+    );
 }
 
 $plugins->add_hook("global_end", "changstats_maindisplay");
@@ -35,220 +41,248 @@ $plugins->add_hook("xmlhttp", "changstats_getdata");
 
 function changstats_activate()
 {
-	global $db;
+    global $settings, $mybb, $db, $lang;
+
+    $lang->load("changstats");
+
 	///// Insert Setting Group //////
     $group = array(
-		"name" =>			"chang_stats",
-		"title" =>			"ChangUonDyU - Advanced Statistics",
-		"description" =>	"Advanced TopX and Latest Posts [AJAX]",
+		'name' =>			'chang_stats',
+        'title' => $lang->changstats_title_setting_group,
+        'description' => $lang->changstats_description_setting_group,
 	);
     $db->insert_query("settinggroups", $group);
 	$gid = $db->insert_id();
 	
 	// Insert Settings
     $s[] = array(
-		"name"			=> "changstats_turn",
-		"title"			=> "Enable this plugin ?",
-		"description"	=> "",
-		"optionscode"	=> "yesno",
-		"value"			=> 1,
-		"disporder"		=> 10,
-		"gid"			=> intval($gid)
+		'name'			=> 'changstats_turn',
+        'title'         => $lang->changstats_title_setting_1,
+        'description'   => $lang->changstats_description_setting_1,    
+		'optionscode'	=> 'yesno',
+		'value'			=> 1,
+		'disporder'		=> 10,
+		'gid'			=> intval($gid)
 	);
-	$s[] = array(
-		"name" 			=> "changstats_result",
-		"title" 		=> "List of result (separate with commas)",
-		"description"	=> "First element is default result when page load",
-		"optionscode" 	=> "text",
-        "value" 		=> "10,20,30,40,50",
-		"disporder" 	=> 20,
-		"gid" 			=> intval($gid),
-		);
-	
-	$s[] = array(
-		"name" 			=> "changstats_refreshtime",
-		"title" 		=> "Auto refresh time(in seconds)",
-		"description"	=> "Set 0 to disable",
-		"optionscode" 	=> "text",
-        "value" 		=> 20,
-		"disporder" 	=> 30,
-		"gid" 			=> intval($gid),
-		);
-	$s[] = array(
-		"name" 			=> "changstats_disforguest",
-		"title" 		=> "Disable AutoRefresh for Guest ?",
-		"description"	=> "",
-		"optionscode" 	=> "yesno",
-        "value" 		=> 1,
-		"disporder" 	=> 35,
-		"gid" 			=> intval($gid),
-		);
-	$s[] = array(
-		"name" 			=> "changstats_disbutton",
-		"title" 		=> "Show Refresh button ?",
-		"description"	=> "",
-		"optionscode" 	=> "yesno",
-        "value" 		=> 1,
-		"disporder" 	=> 36,
-		"gid" 			=> intval($gid),
-		);
-	//// LATESTPOST SETTINGS /////
-	$s[] = array(
-		"name" 			=> "changstats_customtab",
-		"title" 		=> "<u><b>Latest posts for a specific forum</b></u>",
-		"description"	=> $db->escape_string("Separate each option with a new-line. Separate title and forumids with <font color='red'>|</font>. Separate forum ids with commas<div><i>example:</i></div><b><font color='green'>Order1 title<font color='red'>|</font>1,2,5<br>Order2 title<font color='red'>|</font>21,15,7<br>Order3 title<font color='red'>|</font>14</font></b>"),
-		"optionscode" 	=> "textarea",
-        "value" 		=> "Order1 title|1,2,5
-Order2 title|21,15,7
-Order3 title|14",
-		"disporder" 	=> 40,
-		"gid" 			=> intval($gid),
-		);
-		
-	$s[] = array(
-		"name" 			=> "changstats_exclforum",
-		"title" 		=> "Forums excluded from stats",
-		"description"	=> "List IDs, separate with commas",
-		"optionscode" 	=> "text",
-        "value" 		=> "",
-		"disporder" 	=> 45,
-		"gid" 			=> intval($gid),
-		);
-	/*
-	$s[] = array(
-		"name" 			=> "changstats_showdate",
-		"title" 		=> "Show DateTime ?",
-		"optionscode" 	=> "yesno",
-        "value" 		=> 1,
-		"disporder" 	=> 50,
-		"gid" 			=> intval($gid),
-		);
-	$s[] = array(
-		"name" 			=> "changstats_showlastposter",
-		"title" 		=> "Show LastPoster ?",
-		"optionscode" 	=> "yesno",
-        "value" 		=> 1,
-		"disporder" 	=> 60,
-		"gid" 			=> intval($gid),
-		);
-	$s[] = array(
-		"name" 			=> "changstats_showreply",
-		"title" 		=> "Show Replies ?",
-		"optionscode" 	=> "yesno",
-        "value" 		=> 1,
-		"disporder" 	=> 70,
-		"gid" 			=> intval($gid),
-		);
-	$s[] = array(
-		"name" 			=> "changstats_showview",
-		"title" 		=> "Show Views ?",
-		"optionscode" 	=> "yesno",
-        "value" 		=> 1,
-		"disporder" 	=> 80,
-		"gid" 			=> intval($gid),
-		);
-	$s[] = array(
-		"name" 			=> "changstats_showforum",
-		"title" 		=> "Show Forum ?",
-		"optionscode" 	=> "yesno",
-        "value" 		=> 1,
-		"disporder" 	=> 90,
-		"gid" 			=> intval($gid),
-		);
-	*/
-	$s[] = array(
-		"name" 			=> "changstats_dateformat",
-		"title" 		=> "Format of Latest Post Date Time",
-		"description"	=> "",
-		"optionscode" 	=> "text",
-        "value" 		=> "m-d, h:i A",
-		"disporder" 	=> 100,
-		"gid" 			=> intval($gid),
-		);
-	$s[] = array(
-		"name" 			=> "changstats_trim_threadtitle",
-		"title" 		=> "Thread title trimming (0 to disable)",
-		"description"	=> "",
-		"optionscode" 	=> "text",
-        "value" 		=> '35',
-		"disporder" 	=> 110,
-		"gid" 			=> intval($gid),
-		);
-	$s[] = array(
-		"name" 			=> "changstats_trim_forumtitle",
-		"title" 		=> "Forum title trimming (0 to disable)",
-		"description"	=> "",
-		"optionscode" 	=> "text",
-        "value" 		=> "21",
-		"disporder" 	=> 120,
-		"gid" 			=> intval($gid),
-		);
-	$s[] = array(
-		"name" 			=> "changstats_trim_username",
-		"title" 		=> "Username trimming (0 to disable)",
-		"description"	=> "",
-		"optionscode" 	=> "text",
-        "value" 		=> "14",
-		"disporder" 	=> 130,
-		"gid" 			=> intval($gid),
-		);
-	
-	///// TOP SETTINGS /////
-	$s[] = array(
-		"name" 			=> "changstats_topcol_width",
-		"title" 		=> "Width of TopX colum (in pixel)",
-		"description"	=> $db->escape_string("<i>Example: <b>200</b></i>"),
-		"optionscode" 	=> "text",
-        "value" 		=> "150",
-		"disporder" 	=> 200,
-		"gid" 			=> intval($gid),
-		);
 
 	$s[] = array(
-		"name" 			=> "changstats_top_trim_threadtitle",
-		"title" 		=> "Top - Thread title trimming (0 to disable)",
-		"description"	=> "",
-		"optionscode" 	=> "text",
-        "value" 		=> '21',
-		"disporder" 	=> 210,
-		"gid" 			=> intval($gid),
-		);
+		'name' 			=> 'changstats_result',
+        'title'         => $lang->changstats_title_setting_2,
+        'description'   => $lang->changstats_description_setting_2,    
+		'optionscode' 	=> 'text',
+        'value' 		=> '10,20,30,40,50',
+		'disporder' 	=> 20,
+		'gid' 			=> intval($gid)
+	);
+	
 	$s[] = array(
-		"name" 			=> "changstats_top_trim_forumtitle",
-		"title" 		=> "Top - Forum title trimming (0 to disable)",
-		"description"	=> "",
-		"optionscode" 	=> "text",
-        "value" 		=> "21",
-		"disporder" 	=> 220,
-		"gid" 			=> intval($gid),
-		);
+		'name' 			=> 'changstats_refreshtime',
+        'title'         => $lang->changstats_title_setting_3,
+        'description'   => $lang->changstats_description_setting_3,    
+		'optionscode' 	=> 'text',
+        'value' 		=> 20,
+		'disporder' 	=> 30,
+		'gid' 			=> intval($gid)
+	);
+
 	$s[] = array(
-		"name" 			=> "changstats_top_trim_username",
-		"title" 		=> "Top - Username trimming (0 to disable)",
-		"description"	=> "",
-		"optionscode" 	=> "text",
-        "value" 		=> "21",
-		"disporder" 	=> 230,
-		"gid" 			=> intval($gid),
-		);
+		'name' 			=> 'changstats_disforguest',
+        'title'         => $lang->changstats_title_setting_4,
+        'description'   => $lang->changstats_description_setting_4,    
+		'optionscode' 	=> 'yesno',
+        'value' 		=> 1,
+		'disporder' 	=> 35,
+		'gid' 			=> intval($gid)
+	);
+
 	$s[] = array(
-		"name" 			=> "changstats_joindate",
-		"title" 		=> "Format of JoinDate",
-		"description"	=> "",
-		"optionscode" 	=> "text",
-        "value" 		=> "m-d",
-		"disporder" 	=> 240,
-		"gid" 			=> intval($gid),
-		);
+		'name' 			=> 'changstats_disbutton',
+        'title'         => $lang->changstats_title_setting_5,
+        'description'   => $lang->changstats_description_setting_5,    
+		'optionscode' 	=> 'yesno',
+        'value' 		=> 1,
+		'disporder' 	=> 36,
+		'gid' 			=> intval($gid)
+	);
+
+	//// LATESTPOST SETTINGS /////
+
+	$s[] = array(
+		'name' 			=> 'changstats_customtab',
+        'title'         => $lang->changstats_title_setting_6,
+        'description'   => $db->escape_string($lang->changstats_description_setting_6),    
+		'optionscode' 	=> 'textarea',
+        'value' 		=> 'Order1 title|1,2,5
+Order2 title|21,15,7
+Order3 title|14',
+		'disporder' 	=> 40,
+		'gid' 			=> intval($gid)
+	);
+		
+	$s[] = array(
+		'name' 			=> 'changstats_exclforum',
+        'title'         => $lang->changstats_title_setting_7,
+        'description'   => $lang->changstats_description_setting_7,    
+		'optionscode' 	=> 'text',
+        'value' 		=> '',
+		'disporder' 	=> 45,
+		'gid' 			=> intval($gid)
+	);
+
+	/*
+	$s[] = array(
+		'name' 			=> 'changstats_showdate',
+		'title' 		=> 'Show DateTime ?',
+		'description' 	=> '',
+		'optionscode' 	=> 'yesno',
+        'value' 		=> 1,
+		'disporder' 	=> 50,
+		'gid' 			=> intval($gid)
+	);
+
+	$s[] = array(
+		'name' 			=> 'changstats_showlastposter',
+		'title' 		=> 'Show LastPoster ?',
+		'description' 	=> '',		
+		'optionscode' 	=> 'yesno',
+        'value' 		=> 1,
+		'disporder' 	=> 60,
+		'gid' 			=> intval($gid)
+	);
+
+	$s[] = array(
+		'name' 			=> 'changstats_showreply',
+		'title' 		=> 'Show Replies ?',
+		'description' 	=> '',
+		'optionscode' 	=> 'yesno',
+        'value' 		=> 1,
+		'disporder' 	=> 70,
+		'gid' 			=> intval($gid)
+	);
+
+	$s[] = array(
+		'name' 			=> 'changstats_showview',
+		'title' 		=> 'Show Views ?',
+		'description' 	=> '',
+		'optionscode' 	=> 'yesno',
+        'value' 		=> 1,
+		'disporder' 	=> 80,
+		'gid' 			=> intval($gid)
+	);
+
+	$s[] = array(
+		'name' 			=> 'changstats_showforum',
+		'title' 		=> 'Show Forum ?',
+		'description' 	=> '',
+		'optionscode' 	=> 'yesno',
+        'value' 		=> 1,
+		'disporder' 	=> 90,
+		'gid' 			=> intval($gid)
+	);
+	*/
+
+	$s[] = array(
+		'name' 			=> 'changstats_dateformat',
+        'title'         => $lang->changstats_title_setting_8,
+        'description'   => $lang->changstats_description_setting_8,    
+		'optionscode' 	=> 'text',
+        'value' 		=> 'm-d, h:i A',
+		'disporder' 	=> 100,
+		'gid' 			=> intval($gid)
+	);
+
+	$s[] = array(
+		'name' 			=> 'changstats_trim_threadtitle',
+        'title'         => $lang->changstats_title_setting_9,
+        'description'   => $lang->changstats_description_setting_9,    
+		'optionscode' 	=> 'text',
+        'value' 		=> '35',
+		'disporder' 	=> 110,
+		'gid' 			=> intval($gid)
+	);
+
+	$s[] = array(
+		'name' 			=> 'changstats_trim_forumtitle',
+        'title'         => $lang->changstats_title_setting_10,
+        'description'   => $lang->changstats_description_setting_10,    
+		'optionscode' 	=> 'text',
+        'value' 		=> '21',
+		'disporder' 	=> 120,
+		'gid' 			=> intval($gid)
+	);
+
+	$s[] = array(
+		'name' 			=> 'changstats_trim_username',
+        'title'         => $lang->changstats_title_setting_11,
+        'description'   => $lang->changstats_description_setting_11,    
+		'optionscode' 	=> 'text',
+        'value' 		=> '14',
+		'disporder' 	=> 130,
+		'gid' 			=> intval($gid)
+	);
+	
+	///// TOP SETTINGS /////
+
+	$s[] = array(
+		'name' 			=> 'changstats_topcol_width',
+        'title'         => $lang->changstats_title_setting_12,
+        'description'   => $db->escape_string($lang->changstats_description_setting_12),    
+		'optionscode' 	=> 'text',
+        'value' 		=> '150',
+		'disporder' 	=> 200,
+		'gid' 			=> intval($gid)
+	);
+
+	$s[] = array(
+		'name' 			=> 'changstats_top_trim_threadtitle',
+        'title'         => $lang->changstats_title_setting_13,
+        'description'   => $lang->changstats_description_setting_13,    
+		'optionscode' 	=> 'text',
+        'value' 		=> '21',
+		'disporder' 	=> 210,
+		'gid' 			=> intval($gid)
+	);
+
+	$s[] = array(
+		'name' 			=> 'changstats_top_trim_forumtitle',
+        'title'         => $lang->changstats_title_setting_14,
+        'description'   => $lang->changstats_description_setting_14,    
+		'optionscode' 	=> 'text',
+        'value' 		=> '21',
+		'disporder' 	=> 220,
+		'gid' 			=> intval($gid)
+	);
+
+	$s[] = array(
+		'name' 			=> 'changstats_top_trim_username',
+        'title'         => $lang->changstats_title_setting_15,
+        'description'   => $lang->changstats_description_setting_15,    
+		'optionscode' 	=> 'text',
+        'value' 		=> '21',
+		'disporder' 	=> 230,
+		'gid' 			=> intval($gid)
+	);
+
+	$s[] = array(
+		'name' 			=> 'changstats_joindate',
+        'title'         => $lang->changstats_title_setting_16,
+        'description'   => $lang->changstats_description_setting_16,    
+		'optionscode' 	=> 'text',
+        'value' 		=> 'm-d',
+		'disporder' 	=> 240,
+		'gid' 			=> intval($gid)
+	);
 		
 		
 	foreach ($s as $ones)
 	{
 		$db->insert_query("settings", $ones);
 	}
+
 	rebuild_settings();
 	
 	// Create template
+
 	$templates['changuondyu_stats_main'] = <<<EOT
 	<form action="" name="getmenu">
 <table class="tborder" cellpadding="\$theme[tablespace]" cellspacing="\$theme[borderwidth]" border="0" width="100%">
@@ -470,13 +504,17 @@ function changstats_deactivate()
 	$setting_groupname = 'chang_stats';
 	
 	// Delete settings
+
 	$query = $db->query("SELECT gid FROM ".TABLE_PREFIX."settinggroups WHERE name='$setting_groupname' LIMIT 1");
 	$qinfo = $db->fetch_array($query);
 	$db->query("DELETE FROM ".TABLE_PREFIX."settings WHERE gid='$qinfo[gid]'");
+	
 	// Delete settings group
+
 	$db->query("DELETE FROM ".TABLE_PREFIX."settinggroups WHERE name='$setting_groupname'");
 	
 	// Delete templates
+
 	$deletetemplates = array('changuondyu_stats_main',
 							 'changuondyu_stats_refreshbutton',
 							'changuondyu_stats_topuser',
@@ -518,13 +556,16 @@ function changstats_getdata()
 		}
 	
 		// get result value
+
 		$cresult = $_REQUEST['result'];
 			 
 		// AJAX GET NEW POST
+
 		$listr2 = explode("," , $mybb->settings['changstats_result']);
 		if ($cresult <= $listr2[sizeof($listr2)-1])
 		{
 			// tat ca cac bai viet moi
+			
 			if ($_REQUEST['do'] == 'allforum' || $_REQUEST['do'] == 'inforum')
 			{
 				$threadclimit = $mybb->settings['changstats_trim_threadtitle']; // thread title trim
